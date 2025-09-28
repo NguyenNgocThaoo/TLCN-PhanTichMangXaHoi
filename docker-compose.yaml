@@ -1,0 +1,136 @@
+version: "3.9"
+
+services:
+  spark-master:
+    build: ./spark
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+    ports:
+      - "7077:7077"   # Spark master
+      - "8080:8080"   # Spark master UI
+    volumes:
+      - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+    networks:
+      - datalakehouse_net
+
+  spark-worker:
+    build: ./spark
+    container_name: spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_WORKER_PORT=8881
+      - SPARK_WORKER_WEBUI_PORT=8081
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081"   # Spark worker UI
+    volumes:
+      - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+    networks:
+      - datalakehouse_net
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: minio
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=admin123
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # S3 endpoint
+      - "9001:9001"   # MinIO console
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - datalakehouse_net
+
+  postgres:
+    image: bitnami/postgresql:14.5.0-debian-11-r26
+    container_name: postgres
+    environment:
+      POSTGRES_USER: nessie
+      POSTGRES_PASSWORD: nessie
+      POSTGRES_DB: nessie
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/bitnami/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nessie -d nessie"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - datalakehouse_net
+
+  nessie:
+    image: bitnami/nessie:0.102.5
+    container_name: nessie
+    environment:
+      - QUARKUS_HTTP_PORT=19120
+      - QUARKUS_PROFILE=prod
+      - NESSIE_VERSION_STORE_TYPE=JDBC2
+      - nessie.version.store.persist.jdbc.datasource=postgresql
+      - quarkus.datasource.postgresql.jdbc.url=jdbc:postgresql://postgres:5432/nessie
+      - quarkus.datasource.postgresql.username=nessie
+      - quarkus.datasource.postgresql.password=nessie
+      - nessie.server.authentication.enabled=false
+    ports:
+      - "19120:19120"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - datalakehouse_net
+
+# THÊM JUPYTER SERVICE - sử dụng cùng image
+  jupyter:
+    build: ./spark  
+    container_name: jupyter
+    hostname: jupyter
+    environment:
+      - SPARK_MODE=jupyter  
+      - JUPYTER_ENABLE_LAB=yes
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/home/iceberg/notebooks
+      - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+    depends_on:
+      - spark-master
+      - minio
+    networks:
+      - datalakehouse_net
+    # entrypoint để chỉ chạy Jupyter  
+    entrypoint: ["jupyter", "notebook"]
+    command: [
+      "--ip=0.0.0.0",
+      "--port=8888", 
+      "--no-browser",
+      "--allow-root",
+      "--ServerApp.token=''",
+      "--ServerApp.password=''",
+      "--ServerApp.allow_origin='*'",
+      "--ServerApp.trust_xheaders=True"
+    ]
+
+networks:
+  datalakehouse_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  minio_data:
