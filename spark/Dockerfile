@@ -8,5 +8,6 @@ COPY jars/*.jar /opt/spark/jars/
 COPY scripts/entrypoint.sh /opt/spark/entrypoint.sh
 RUN chmod +x /opt/spark/entrypoint.sh
 
+WORKDIR /home/iceberg/notebooks
 # Override the default entrypoint
 ENTRYPOINT ["/opt/spark/entrypoint.sh"]

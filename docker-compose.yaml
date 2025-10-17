@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   spark-master:
     build: ./spark
@@ -56,24 +54,24 @@ services:
     networks:
       - datalakehouse_net
 
-  postgres:
-    image: bitnami/postgresql:14.5.0-debian-11-r26
-    container_name: postgres
-    environment:
-      POSTGRES_USER: nessie
-      POSTGRES_PASSWORD: nessie
-      POSTGRES_DB: nessie
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/bitnami/postgresql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nessie -d nessie"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - datalakehouse_net
+  # postgres:
+  #   image: bitnami/postgresql:14.5.0-debian-11-r26
+  #   container_name: postgres
+  #   environment:
+  #     POSTGRES_USER: nessie
+  #     POSTGRES_PASSWORD: nessie
+  #     POSTGRES_DB: nessie
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/bitnami/postgresql
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U nessie -d nessie"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - datalakehouse_net
 
   nessie:
     image: bitnami/nessie:0.102.5
@@ -84,8 +82,8 @@ services:
       - NESSIE_VERSION_STORE_TYPE=JDBC2
       - nessie.version.store.persist.jdbc.datasource=postgresql
       - quarkus.datasource.postgresql.jdbc.url=jdbc:postgresql://postgres:5432/nessie
-      - quarkus.datasource.postgresql.username=nessie
-      - quarkus.datasource.postgresql.password=nessie
+      - quarkus.datasource.postgresql.username=root
+      - quarkus.datasource.postgresql.password=root
       - nessie.server.authentication.enabled=false
     ports:
       - "19120:19120"
@@ -126,7 +124,67 @@ services:
       "--ServerApp.allow_origin='*'",
       "--ServerApp.trust_xheaders=True"
     ]
+  vector-database:
+      image: qdrant/qdrant:v1.11.5
+      container_name: qdrant
+      ports:
+        - "6333:6333"   # REST API
+        - "6334:6334"   # gRPC API
+      volumes:
+        - qdrant_vector_storage:/qdrant/storage
+      networks:
+        - datalakehouse_net
 
+  # ==========================
+  # AIRFLOW (LOCAL EXECUTOR)
+  # ==========================
+  postgres:
+    image: postgres:14.5
+    container_name: postgres
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: nessie     # database mặc định sẽ được tạo lúc đầu
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d  # dùng để tạo thêm DB khác
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d nessie"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - datalakehouse_net
+
+  airflow:
+    image: apache/airflow:2.7.1
+    container_name: airflow
+    depends_on:
+      - postgres
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@postgres:5432/airflow
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./comment_data/raw:/opt/airflow/data/raw
+      - ./airflow/entrypoint.sh:/opt/airflow/entrypoint.sh
+    entrypoint: ["/bin/bash", "/opt/airflow/entrypoint.sh"]
+    ports:
+      - "8088:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - datalakehouse_net
+
+
+  # ==========================
 networks:
   datalakehouse_net:
     driver: bridge
@@ -134,3 +192,5 @@ networks:
 volumes:
   postgres_data:
   minio_data:
+  qdrant_vector_storage:
+  airflow_db_data:

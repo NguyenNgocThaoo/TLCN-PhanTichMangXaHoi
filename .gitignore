@@ -1,2 +1,6 @@
 spark/jars/
 *.jar
+airflow/dags/__pycache__/
+airflow/logs/
+airflow/plugins/__pycache__/
+
