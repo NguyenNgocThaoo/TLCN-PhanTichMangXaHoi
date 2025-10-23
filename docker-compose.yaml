@@ -74,17 +74,22 @@ services:
   #     - datalakehouse_net
 
   nessie:
-    image: bitnami/nessie:0.102.5
+    image: ghcr.io/projectnessie/nessie:0.102.5
     container_name: nessie
     environment:
       - QUARKUS_HTTP_PORT=19120
       - QUARKUS_PROFILE=prod
       - NESSIE_VERSION_STORE_TYPE=JDBC2
-      - nessie.version.store.persist.jdbc.datasource=postgresql
-      - quarkus.datasource.postgresql.jdbc.url=jdbc:postgresql://postgres:5432/nessie
-      - quarkus.datasource.postgresql.username=root
-      - quarkus.datasource.postgresql.password=root
-      - nessie.server.authentication.enabled=false
+      # - nessie.version.store.persist.jdbc.datasource=postgresql
+      # - quarkus.datasource.postgresql.jdbc.url=jdbc:postgresql://postgres:5432/nessie
+      # - quarkus.datasource.postgresql.username=root
+      # - quarkus.datasource.postgresql.password=root
+      # - nessie.server.authentication.enabled=false
+      - NESSIE_VERSION_STORE_PERSIST_JDBC_DATASOURCE=postgresql
+      - QUARKUS_DATASOURCE_postgresql_JDBC_URL=jdbc:postgresql://postgres:5432/nessie
+      - QUARKUS_DATASOURCE_postgresql_USERNAME=root
+      - QUARKUS_DATASOURCE_postgresql_PASSWORD=root
+      - NESSIE_SERVER_AUTHENTICATION_ENABLED=false
     ports:
       - "19120:19120"
     depends_on:
