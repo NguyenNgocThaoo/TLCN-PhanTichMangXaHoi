@@ -1,5 +1,8 @@
 spark/jars/
 *.jar
+minio/minio_data
+qdrant
+postgres
 airflow/dags/__pycache__/
 airflow/logs/
 airflow/plugins/__pycache__/
