@@ -6,4 +6,5 @@ postgres
 airflow/dags/__pycache__/
 airflow/logs/
 airflow/plugins/__pycache__/
+.ipynb_checkpoints
 
