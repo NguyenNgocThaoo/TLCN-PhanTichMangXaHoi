@@ -175,7 +175,6 @@ services:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
-      - ./comment_data/raw:/opt/airflow/data/raw
       - ./airflow/entrypoint.sh:/opt/airflow/entrypoint.sh
     entrypoint: ["/bin/bash", "/opt/airflow/entrypoint.sh"]
     ports:
