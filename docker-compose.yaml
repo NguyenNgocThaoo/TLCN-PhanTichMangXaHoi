@@ -1,4 +1,4 @@
-services:
+services:  
   spark-master:
     build: ./spark
     container_name: spark-master
@@ -12,6 +12,8 @@ services:
       - "8080:8080"   # Spark master UI
     volumes:
       - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      - ./notebooks:/opt/airflow/notebooks  # Mount notebooks để có thể chạy notebook nếu cần
+      - ./airflow/scripts:/opt/airflow/scripts  # Mount PySpark scripts
     networks:
       - datalakehouse_net
 
@@ -161,21 +163,25 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - datalakehouse_net
+      - datalakehouse_net  
 
   airflow:
-    image: apache/airflow:2.7.1
+    build: ./airflow  # Sử dụng Dockerfile tùy chỉnh với dependencies đã cài sẵn
+    # image: apache/airflow:2.7.1  # Comment lại để dùng build thay vì image
     container_name: airflow
     depends_on:
       - postgres
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@postgres:5432/airflow
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@postgres:5432/airflow    
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
       - ./airflow/entrypoint.sh:/opt/airflow/entrypoint.sh
+      - ./notebooks:/opt/airflow/notebooks  # Mount notebooks để Airflow có thể chạy notebook
+      - ./airflow/scripts:/opt/airflow/scripts  # Mount PySpark scripts
+      - /var/run/docker.sock:/var/run/docker.sock  # Mount Docker socket để Airflow có thể điều khiển containers
     entrypoint: ["/bin/bash", "/opt/airflow/entrypoint.sh"]
     ports:
       - "8088:8080"

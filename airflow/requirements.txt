@@ -1,0 +1,19 @@
+# Requirements cho Airflow DAG chạy notebook trên Spark
+
+# Papermill - để thực thi Jupyter notebook
+papermill>=2.4.0
+
+# nbconvert - để convert và thực thi notebook
+nbconvert>=7.0.0
+
+# nbformat - để đọc/ghi notebook
+nbformat>=5.7.0
+
+# PySpark - để tương tác với Spark cluster
+pyspark>=3.3.0
+
+# Requests - để kiểm tra trạng thái cluster
+requests>=2.28.0
+
+# Boto3 - để tương tác với MinIO/S3
+boto3>=1.26.0
