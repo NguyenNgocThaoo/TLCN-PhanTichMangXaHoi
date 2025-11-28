@@ -39,3 +39,27 @@ $$;
 
 -- 4. Gán quyền cho airflow
 GRANT ALL PRIVILEGES ON DATABASE airflow TO airflow;
+
+-- ================================================
+--  CREATE USER & DATABASE FOR SUPERSET (PostgreSQL)
+-- ================================================
+
+-- 1. Tạo user superset (nếu chưa có)
+DO
+$$
+BEGIN
+   IF NOT EXISTS (
+      SELECT FROM pg_catalog.pg_roles WHERE rolname = 'superset'
+   ) THEN
+      CREATE ROLE superset LOGIN PASSWORD 'superset';
+   END IF;
+END
+$$;
+
+-- 2. Tạo database superset nếu chưa tồn tại
+\echo Checking for database superset...
+\! psql -U root -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='superset'" | grep -q 1 || psql -U root -d postgres -c "CREATE DATABASE superset OWNER superset;"
+
+-- 3. Cấp quyền cho user superset
+GRANT ALL PRIVILEGES ON DATABASE superset TO superset;
+

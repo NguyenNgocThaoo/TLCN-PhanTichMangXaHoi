@@ -193,6 +193,47 @@ services:
     networks:
       - datalakehouse_net
 
+  dremio:
+    image: dremio/dremio-oss:25.1.0
+    container_name: dremio
+    ports:
+      - "9047:9047"     # Web UI
+      - "31010:31010"   # ODBC/JDBC
+      - "32010:32010"   # Flight SQL
+    environment:
+      - SERVICES_COORDINATOR_ENABLED=true
+      - SERVICES_EXECUTOR_ENABLED=true
+    depends_on:
+      - minio
+      - nessie
+    # volumes:
+    #   - ./dremio/data:/opt/dremio/data
+    volumes:
+      - dremio_data:/opt/dremio/data
+      # - ./dremio/conf/dremio-default.conf:/opt/dremio/conf/dremio.conf
+    networks:
+      - datalakehouse_net
+
+  superset:
+    build: ./superset
+    container_name: superset
+    depends_on:
+      - postgres
+      - dremio
+    environment:
+      - SUPERSET_SECRET_KEY=supersecret123
+      - SUPERSET_LOAD_EXAMPLES=no
+
+      # SUPPERSET DÙNG CHUNG POSTGRES
+      - SUPERSET_DB_URI=postgresql+psycopg2://superset:superset@postgres:5432/superset
+
+    ports:
+      - "8090:8088"
+    volumes:
+      - ./superset/superset_home:/app/superset_home
+    networks:
+      - datalakehouse_net
+
 
   # ==========================
 networks:
@@ -201,3 +242,5 @@ networks:
 
 # volumes:
 #   airflow_db_data:
+volumes:
+  dremio_data:
