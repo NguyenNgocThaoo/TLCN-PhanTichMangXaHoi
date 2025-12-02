@@ -14,12 +14,14 @@ services:
       - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
       - ./notebooks:/opt/airflow/notebooks  # Mount notebooks để có thể chạy notebook nếu cần
       - ./airflow/scripts:/opt/airflow/scripts  # Mount PySpark scripts
+      - ./spark/jars/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
+      - ./spark/jars/aws-java-sdk-bundle-1.12.262.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.262.jar
     networks:
       - datalakehouse_net
 
-  spark-worker:
+  spark-worker-1:
     build: ./spark
-    container_name: spark-worker
+    container_name: spark-worker-1
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
@@ -30,9 +32,53 @@ services:
     depends_on:
       - spark-master
     ports:
-      - "8081:8081"   # Spark worker UI
+      - "8081:8081"   # Spark worker 1 UI
     volumes:
       - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      - ./spark/jars/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
+      - ./spark/jars/aws-java-sdk-bundle-1.12.262.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.262.jar
+    networks:
+      - datalakehouse_net
+
+  spark-worker-2:
+    build: ./spark
+    container_name: spark-worker-2
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_WORKER_PORT=8882
+      - SPARK_WORKER_WEBUI_PORT=8082
+    depends_on:
+      - spark-master
+    ports:
+      - "8082:8082"   # Spark worker 2 UI
+    volumes:
+      - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      - ./spark/jars/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
+      - ./spark/jars/aws-java-sdk-bundle-1.12.262.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.262.jar
+    networks:
+      - datalakehouse_net
+
+  spark-worker-3:
+    build: ./spark
+    container_name: spark-worker-3
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_WORKER_PORT=8883
+      - SPARK_WORKER_WEBUI_PORT=8083
+    depends_on:
+      - spark-master
+    ports:
+      - "8083:8083"   # Spark worker 3 UI
+    volumes:
+      - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      - ./spark/jars/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
+      - ./spark/jars/aws-java-sdk-bundle-1.12.262.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.262.jar
     networks:
       - datalakehouse_net
   minio:
@@ -114,6 +160,8 @@ services:
     volumes:
       - ./notebooks:/home/iceberg/notebooks
       - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      - ./spark/jars/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
+      - ./spark/jars/aws-java-sdk-bundle-1.12.262.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.262.jar
     depends_on:
       - spark-master
       - minio
@@ -213,27 +261,6 @@ services:
       # - ./dremio/conf/dremio-default.conf:/opt/dremio/conf/dremio.conf
     networks:
       - datalakehouse_net
-
-  superset:
-    build: ./superset
-    container_name: superset
-    depends_on:
-      - postgres
-      - dremio
-    environment:
-      - SUPERSET_SECRET_KEY=supersecret123
-      - SUPERSET_LOAD_EXAMPLES=no
-
-      # SUPPERSET DÙNG CHUNG POSTGRES
-      - SUPERSET_DB_URI=postgresql+psycopg2://superset:superset@postgres:5432/superset
-
-    ports:
-      - "8090:8088"
-    volumes:
-      - ./superset/superset_home:/app/superset_home
-    networks:
-      - datalakehouse_net
-
 
   # ==========================
 networks:
