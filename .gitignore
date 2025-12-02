@@ -1,6 +1,6 @@
 spark/jars/
 *.jar
-minio/minio_data
+minio
 qdrant
 postgres
 airflow/dags/__pycache__/
