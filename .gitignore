@@ -1,5 +1,6 @@
 spark/jars/
 *.jar
+spark/jars.rar
 minio
 qdrant
 postgres
