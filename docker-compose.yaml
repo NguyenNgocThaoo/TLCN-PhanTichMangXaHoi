@@ -61,26 +61,26 @@ services:
     networks:
       - datalakehouse_net
 
-  spark-worker-3:
-    build: ./spark
-    container_name: spark-worker-3
-    environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_CORES=2
-      - SPARK_WORKER_MEMORY=2g
-      - SPARK_WORKER_PORT=8883
-      - SPARK_WORKER_WEBUI_PORT=8083
-    depends_on:
-      - spark-master
-    ports:
-      - "8083:8083"   # Spark worker 3 UI
-    volumes:
-      - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
-      - ./spark/jars/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
-      - ./spark/jars/aws-java-sdk-bundle-1.12.262.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.262.jar
-    networks:
-      - datalakehouse_net
+  # spark-worker-3:
+  #   build: ./spark
+  #   container_name: spark-worker-3
+  #   environment:
+  #     - SPARK_MODE=worker
+  #     - SPARK_MASTER_URL=spark://spark-master:7077
+  #     - SPARK_WORKER_CORES=2
+  #     - SPARK_WORKER_MEMORY=2g
+  #     - SPARK_WORKER_PORT=8883
+  #     - SPARK_WORKER_WEBUI_PORT=8083
+  #   depends_on:
+  #     - spark-master
+  #   ports:
+  #     - "8083:8083"   # Spark worker 3 UI
+  #   volumes:
+  #     - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+  #     - ./spark/jars/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
+  #     - ./spark/jars/aws-java-sdk-bundle-1.12.262.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.262.jar
+  #   networks:
+  #     - datalakehouse_net
   minio:
     image: minio/minio:RELEASE.2024-12-18T13-15-44Z
     container_name: minio
