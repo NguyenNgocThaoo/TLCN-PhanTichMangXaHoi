@@ -15,7 +15,7 @@ RUN python -m ipykernel install --name=python3
 
 WORKDIR /opt/spark
 # Copy thêm các JAR cần thiết để Spark làm việc với S3 (MinIO)
-COPY jars/*.jar /opt/spark/jars/
+# COPY jars/*.jar /opt/spark/jars/
 
 # Copy scripts folder
 COPY scripts/ /opt/spark/scripts/
