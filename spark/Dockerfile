@@ -10,6 +10,15 @@ RUN pip install --no-cache-dir \
     ipykernel==6.29.5 \
     jupyter==1.0.0
 
+# ===== Cài đặt các thư viện ML cho Multi-Task Model =====
+RUN pip install --no-cache-dir \
+    torch==2.1.2 \
+    transformers==4.36.2 \
+    vncorenlp==1.0.3 \
+    pandas==2.0.3 \
+    pyarrow==14.0.1 \
+    scikit-learn==1.3.2
+
 # Install Python kernel
 RUN python -m ipykernel install --name=python3
 
