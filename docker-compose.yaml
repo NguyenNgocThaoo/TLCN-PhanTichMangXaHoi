@@ -253,7 +253,7 @@ services:
     ports:
       - "9047:9047"     # Web UI
       - "31010:31010"   # ODBC/JDBC
-      - "32010:32010"   # Flight SQL
+      - "45678:32010"   # Flight SQL (changed to avoid Windows Hyper-V reserved ports)
     environment:
       - SERVICES_COORDINATOR_ENABLED=true
       - SERVICES_EXECUTOR_ENABLED=true
