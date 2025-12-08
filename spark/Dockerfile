@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-cache-dir \
     torch==2.1.2 \
     transformers==4.36.2 \
+    sentencepiece==0.1.99 \
     vncorenlp==1.0.3 \
     pandas==2.0.3 \
     pyarrow==14.0.1 \

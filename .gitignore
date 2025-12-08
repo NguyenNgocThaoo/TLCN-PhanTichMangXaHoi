@@ -11,4 +11,5 @@ airflow/plugins/__pycache__/
 **/.ipynb_checkpoints/
 spark/VnCoreNLP-1.2/
 spark/phobert_multitask_final/
+spark/Vietnamese-Sentiment-visobert/
 
