@@ -6,9 +6,6 @@
 
 ## Cấu trúc thư mục chính
 
-- **airflow/**: Chứa cấu hình, Dockerfile, requirements và các DAGs cho ETL pipeline (chuyển đổi dữ liệu từ raw → bronze → silver).
-  - `dags/`: Các workflow ETL tự động hóa với Airflow.
-  - `scripts/`: Script hỗ trợ chuyển đổi dữ liệu.
 - **dremio/**: Cấu hình cho Dremio - nền tảng Data Lakehouse để truy vấn, phân tích dữ liệu.
 - **finetune_model/**: Notebook Jupyter để fine-tune các mô hình PhoBERT cho các tác vụ như NER, intent, topic, sentiment.
 - **init-db/**: Script SQL khởi tạo nhiều database phục vụ cho các tầng dữ liệu.
